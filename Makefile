@@ -1,23 +1,23 @@
 SRC = $(wildcard ./*.ipynb)
 
-all: {businessglossary} docs
+all: businessglossary docs
 
-{businessglossary}: $(SRC)
-	nbdev_build_lib
-	touch {businessglossary}
+businessglossary: $(SRC)
+	nbdev_export
+	touch businessglossary
 
 sync:
-	nbdev_update_lib
+	nbdev_update
 
 docs_serve: docs
 	cd docs && bundle exec jekyll serve
 
 docs: $(SRC)
-	nbdev_build_docs
+	nbdev_docs
 	touch docs
 
 test:
-	nbdev_test_nbs
+	nbdev_test
 
 release: pypi
 	nbdev_bump_version
@@ -26,7 +26,7 @@ pypi: dist
 	twine upload --repository pypi dist/*
 
 dist: clean
-	python setup.py sdist bdist_wheel
+	python -m build
 
 clean:
 	rm -rf dist
