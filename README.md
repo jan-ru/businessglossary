@@ -1,24 +1,14 @@
-# Project name here
-> Summary description here.
+# businessglossary
 
+> A business glossary.
 
-This file will become your README and also the index of your documentation.
+## Development
 
-## Install
+Requires [uv](https://docs.astral.sh/uv/). Python 3.13+ is supported; `.python-version` pins 3.15 for local work.
 
-`pip install your_project_name`
-
-## How to use
-
-Fill me in please! Don't forget code examples:
-
+```sh
+uv sync            # create .venv and install dev dependencies
+uv run pytest      # run tests
+uv run ruff check  # lint
+uv run ruff format # format
 ```
-1+1
-```
-
-
-
-
-    2
-
-
