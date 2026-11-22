@@ -1,0 +1,206 @@
+id: investment
+title:
+  en: Investment and governance domain
+description: 'Business concepts of the a-bos event model: investment lifecycle, governance, risk.'
+default_language: en
+imported_from: finance-tools:a-bos/docs/events/glossary.md
+concepts:
+- id: investment-opportunity
+  pref_label:
+    en: Investment Opportunity
+  definition: A potential investment that has been identified but has not yet been approved.
+  properties:
+    aggregate:
+    - Opportunity
+    states:
+    - Identified
+    - Under Due Diligence
+    - Approved
+    - Rejected
+    - Invested
+    events:
+    - OpportunityIdentified
+    - DueDiligenceStarted
+    - InvestmentApproved
+    - InvestmentRejected
+- id: position
+  pref_label:
+    en: Position
+  definition: The current holding of a financial instrument within the portfolio.
+  properties:
+    aggregate:
+    - Portfolio
+    events:
+    - PositionOpened
+    - PositionIncreased
+    - PositionReduced
+    - PositionClosed
+- id: approval
+  pref_label:
+    en: Approval
+  definition: |-
+    A governance decision authorizing a business action.
+
+    Approvals are represented as business events rather than mutable status fields.
+  properties:
+    events:
+    - ApprovalRequested
+    - ApprovalGranted
+    - ApprovalRejected
+- id: projection
+  pref_label:
+    en: Projection
+  definition: A derived view of the event stream.
+  properties:
+    examples:
+    - Beancount Ledger
+    - DuckDB Analytics
+    - Evidence Dashboards
+    - BPMN Runtime
+- id: custodian
+  pref_label:
+    en: Custodian
+  definition: |-
+    A financial institution or platform that holds a legal entity's assets in
+    safekeeping and issues the account statements, contract notes, and holdings
+    reports that serve as the **source documents** for that entity's books.
+
+    Generalises beyond securities custodians (VP Bank, for Tenggara) to
+    asset-platform administrators (CrowdRealEstate, for Telco's real-estate loans).
+    Distinct from a **broker / executing venue** (who transacts) and a
+    **counterparty** (the other side of a trade or loan).
+
+    Reference data (no lifecycle) — modelled in `shared/financial_types` and
+    referenced by `CustodianCode` from the entities it serves and the documents
+    that cite it (minutes, reports). See [ADR-0005](https://github.com/jan-ru/finance-tools/blob/main/a-bos/docs/adr/ADR-0005-Custodian.md).
+  sources:
+  - https://github.com/jan-ru/finance-tools/blob/main/a-bos/docs/adr/ADR-0005-Custodian.md
+  properties:
+    relationship:
+    - A Legal Entity has one or more Custodians (`LegalEntity 1 ──< Custodian`).
+- id: governance
+  pref_label:
+    en: Governance
+  definition: |-
+    The a-bos remit: the decisions, obligations, policies, and assurance a legal
+    entity must execute. Owned by the a-bos event spine, with two slices —
+    **Compliance** (the regulatory slice: mandate/limit/suitability gates, KYC/AML,
+    statutory reporting) and the **annual governance cycle** (budget → approve →
+    execute → report → file, plus board/AGM decisions and minutes).
+
+    Risk management (`alm`) is a **peer function**, not a slice: it defines limits and
+    measures exposure; governance monitors those limits as controls and records the
+    evidence. See [ADR-0006](https://github.com/jan-ru/finance-tools/blob/main/a-bos/docs/adr/ADR-0006-Governance.md).
+  sources:
+  - https://github.com/jan-ru/finance-tools/blob/main/a-bos/docs/adr/ADR-0006-Governance.md
+  related:
+  - control
+  - budget
+  - approval
+  - risk
+- id: control
+  pref_label:
+    en: Control
+  definition: |-
+    A testable assurance check giving confidence that a required condition holds
+    (e.g. exposure within its limit, or the bank jaaroverzicht agreeing with the
+    ledger).
+
+    Every control has three parts, in three homes (see
+    [ADR-0006](https://github.com/jan-ru/finance-tools/blob/main/a-bos/docs/adr/ADR-0006-Governance.md)):
+    - **Definition** — what must be true, tolerance, frequency, owner → a-bos (policy).
+    - **Executor** — the check itself → the domain nearest the data (`ledger`, `alm`).
+    - **Evidence** — pass/fail + diff + timestamp, as an immutable event → a-bos.
+
+    And one of three **types** ([ADR-0003](https://github.com/jan-ru/finance-tools/blob/main/a-bos/docs/adr/ADR-0003-Compliance.md)):
+    **preventive** (pre-action gate), **detective** (monitoring over the log /
+    projections), **reporting** (a filing on the calendar).
+  sources:
+  - https://github.com/jan-ru/finance-tools/blob/main/a-bos/docs/adr/ADR-0006-Governance.md
+  - https://github.com/jan-ru/finance-tools/blob/main/a-bos/docs/adr/ADR-0003-Compliance.md
+  properties:
+    aggregate:
+    - Control
+    states:
+    - Defined
+    - Scheduled
+    - Evaluated (→ Passed / Failed)
+    - Remediated
+    events:
+    - ControlEvaluated
+    - LimitBreached
+    - BreachRemediated
+- id: budget
+  pref_label:
+    en: Budget
+  definition: |-
+    An approved annual financial plan — a governance artifact of the annual cycle.
+    Actuals-vs-budget monitoring is itself a detective control.
+  properties:
+    aggregate:
+    - Budget
+    states:
+    - Proposed
+    - Approved
+    - Superseded
+    events:
+    - BudgetProposed
+    - BudgetApproved
+- id: risk
+  pref_label:
+    en: Risk
+  definition: |-
+    A potential event that threatens a legal entity's business goals. Managed through
+    a repeatable **ERM cycle** — identify → assess (gross profile) → treat with
+    controls (net/residual) → accept residual → indicators → monitor — applied per
+    legal entity. See [ADR-0007](https://github.com/jan-ru/finance-tools/blob/main/a-bos/docs/adr/ADR-0007-Risk-Cycle.md).
+
+    Scoped to a Legal Entity by `EntityCode`, so the same process runs for every
+    entity; the **risk register is a per-entity projection** over the events below.
+    Measurement (gross/net profiles, KRI computation) is the `alm` slice; the
+    lifecycle, appetite, and acceptance live on the a-bos spine.
+  sources:
+  - https://github.com/jan-ru/finance-tools/blob/main/a-bos/docs/adr/ADR-0007-Risk-Cycle.md
+  properties:
+    aggregate:
+    - Risk
+    states:
+    - Identified
+    - Assessed
+    - Treated (controls linked)
+    - Accepted (residual accepted vs appetite)
+    - Breached (a KRI crossed its threshold)
+    - Retired
+    events:
+    - RiskAppetiteSet
+    - RiskIdentified
+    - RiskAssessed
+    - ControlLinked
+    - ResidualRiskAccepted
+    - KRIBreached
+    - RiskRetired
+  related:
+  - risk-appetite
+  - control
+- id: risk-appetite
+  pref_label:
+    en: Risk Appetite
+  definition: |-
+    The amount of risk, per category, a legal entity is willing to accept in pursuit
+    of its goals — the yardstick residual risk is judged against. A **governance
+    decision set up front** (board), not derived after assessment. Set via
+    `RiskAppetiteSet`.
+- id: key-indicators-kri-kci-kpi
+  pref_label:
+    en: Key Indicators (KRI / KCI / KPI)
+  definition: |-
+    Three distinct indicator types, monitored together but owned separately:
+
+    - **KRI** — Key Risk Indicator: an early-warning metric that risk is rising vs
+      appetite (e.g. concentration %, LTV drift, liquidity ratio). Owner: `alm`. A
+      threshold breach raises `KRIBreached` / `LimitBreached`.
+    - **KCI** — Key Control Indicator: a metric that a control is operating
+      effectively (e.g. % reconciliations passed on time, count of stale valuations).
+      Owner: controls / a-bos — it validates the step-4 residual estimate.
+    - **KPI** — Key Performance Indicator: business performance (return, AUM). Owner:
+      operations.

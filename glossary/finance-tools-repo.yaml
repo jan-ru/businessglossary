@@ -1,0 +1,614 @@
+id: finance-tools-repo
+title:
+  en: finance-tools repository vocabulary
+description: Engineering vocabulary of the finance-tools monorepo (structure, gates, release).
+default_language: en
+imported_from: finance-tools:docs/glossary.md
+concepts:
+- id: workspace-member
+  pref_label:
+    en: workspace member
+  definition: A Python package listed in the root `pyproject.toml`'s `[tool.uv.workspace].members`. Members
+    share one `uv.lock` and one `.venv`, and CI derives its test list from them.
+  alt_labels:
+    en: []
+  group: Repo structure
+  sources:
+  - https://github.com/jan-ru/finance-tools/blob/main/docs/adr/workspace/0050-workspace-boundaries.md
+  properties:
+    source_text:
+    - ADR-050
+- id: standalone-package
+  pref_label:
+    en: standalone package
+  definition: 'A Python project deliberately outside the workspace, with its own lockfile: `courses/698659_LSS`
+    and the vendored `ft-connector-mssql`. `apps/connectors/brightspace` was one until it joined the workspace.'
+  alt_labels:
+    en: []
+  group: Repo structure
+  sources:
+  - https://github.com/jan-ru/finance-tools/blob/main/docs/adr/workspace/0081-brightspace-joins-the-workspace.md
+  properties:
+    source_text:
+    - ADR-081
+- id: npm-workspace
+  pref_label:
+    en: npm workspace
+  definition: The one JavaScript workspace (`FPA_Arquero`, `excel2budget/frontend`, `B2T/ui2`, the lineage
+    viewer, `ci/js-smoke`), with a single root `package-lock.json`.
+  alt_labels:
+    en: []
+  group: Repo structure
+  sources:
+  - https://github.com/jan-ru/finance-tools/blob/main/docs/adr/workspace/0050-workspace-boundaries.md
+  properties:
+    source_text:
+    - ADR-050 §3
+- id: product-system
+  pref_label:
+    en: product system
+  definition: 'One of the three groups under the core mission ([mission.md](https://github.com/jan-ru/finance-tools/blob/main/docs/mission.md)):
+    **Accounting**, **Planning & Budgeting**, **Investment**. Education is not a fourth product system
+    — it shares the workspace''s environment and `shared/*` libraries but sits outside the mission.'
+  alt_labels:
+    en: []
+  group: Repo structure
+  sources:
+  - https://github.com/jan-ru/finance-tools/blob/main/docs/adr/workspace/0074-yahoo-finance-shared-substrate.md
+  - https://github.com/jan-ru/finance-tools/blob/main/docs/architecture/workspace.dsl
+  properties:
+    source_text:
+    - ADR-074, workspace.dsl
+- id: shared-substrate
+  pref_label:
+    en: shared substrate
+  definition: '`shared/*`: libraries the product systems share. A strict import DAG, libraries only, never
+    services.'
+  alt_labels:
+    en: []
+  group: Repo structure
+  sources:
+  - https://github.com/jan-ru/finance-tools/blob/main/docs/adr/workspace/0074-yahoo-finance-shared-substrate.md
+  - https://github.com/jan-ru/finance-tools/blob/main/docs/architecture/shared-dependency-dag.md
+  properties:
+    source_text:
+    - ADR-074, DAG
+- id: constellation-of-apps
+  pref_label:
+    en: constellation of apps
+  definition: 'The architecture principle: independently deployable apps over a shared substrate, never
+    one platform with an orchestrator.'
+  alt_labels:
+    en: []
+  group: Repo structure
+  sources:
+  - https://github.com/jan-ru/finance-tools/blob/main/docs/adr/workspace/0074-yahoo-finance-shared-substrate.md
+  properties:
+    source_text:
+    - ADR-074
+- id: c4-model
+  pref_label:
+    en: C4 model
+  definition: '`docs/architecture/workspace.dsl`, the one hand-written architecture model. Every package
+    must sit in it, and the `architecture_model` check enforces that.'
+  alt_labels:
+    en: []
+  group: Repo structure
+  sources:
+  - https://github.com/jan-ru/finance-tools/blob/main/docs/architecture/workspace.dsl
+  properties:
+    source_text:
+    - workspace.dsl
+- id: src-layout
+  pref_label:
+    en: src layout
+  definition: A package whose code sits in `src/<package>/`, so its editable install puts only `src/`
+    on `sys.path`. A flat layout (package beside `pyproject.toml`) exposes the whole project directory
+    instead. Every installed member uses a src layout except `connectors/mssql`, which exposes nothing
+    else.
+  alt_labels:
+    en: []
+  group: Repo structure
+  sources:
+  - https://github.com/jan-ru/finance-tools/issues/1452
+  - https://github.com/jan-ru/finance-tools/blob/main/scripts/checks/top_level_names.py
+  properties:
+    source_text:
+    - '#1452, top_level_names.py'
+- id: top-level-name-clash
+  pref_label:
+    en: top-level name clash
+  definition: 'Two members exposing the same import name, or one exposing a namespace directory (no `__init__.py`),
+    so an import resolves to whichever tree comes first. The `top_level_names` check forbids it, with
+    no exemption since #1457.'
+  alt_labels:
+    en: []
+  group: Repo structure
+  sources:
+  - https://github.com/jan-ru/finance-tools/blob/main/scripts/checks/top_level_names.py
+  properties:
+    source_text:
+    - top_level_names.py
+- id: client
+  pref_label:
+    en: client
+  definition: A `clients/<name>/` member holding one engagement's public configuration. Confidential data
+    lives in `$FT_DATA_DIR/<client>/`, which is gitignored and never committed.
+  alt_labels:
+    en: []
+  group: Repo structure
+  sources:
+  - https://github.com/jan-ru/finance-tools/blob/main/clients/README.md
+  properties:
+    source_text:
+    - clients/README.md
+- id: reader-ir-writer
+  pref_label:
+    en: Reader → IR → Writer
+  definition: 'The canonical data flow: a reader parses into a Polars intermediate representation, and
+    a writer serializes it. Readers and writers are functions whose keyword-only parameters are their
+    options.'
+  alt_labels:
+    en: []
+  group: Architecture
+  sources:
+  - https://github.com/jan-ru/finance-tools/blob/main/docs/adr/pipeline/0056-pipeline-core-v2.md
+  properties:
+    source_text:
+    - ADR-056
+- id: ir
+  pref_label:
+    en: IR
+  definition: 'Intermediate representation: the Polars frame between a reader and a writer.'
+  alt_labels:
+    en: []
+  group: Architecture
+  sources:
+  - https://github.com/jan-ru/finance-tools/blob/main/docs/adr/pipeline/0056-pipeline-core-v2.md
+  properties:
+    source_text:
+    - ADR-056
+- id: connector
+  pref_label:
+    en: connector
+  definition: A package implementing the `Connector` protocol (`shared/connectors_core`, the interface)
+    and registered under the `ft_connectors` entry point; it reads an external source into tables. Each
+    one is owned by a product system, and only one used by several systems lives in `shared/` (`yahoo_finance`).
+    Education connectors use their own base, `apps/hva-connectors`.
+  alt_labels:
+    en: []
+  group: Architecture
+  sources:
+  - https://github.com/jan-ru/finance-tools/blob/main/connectors/README.md
+  properties:
+    source_text:
+    - connectors/README.md § Where connector code lives
+- id: function-primary-style
+  pref_label:
+    en: function-primary style
+  definition: Logic lives in pure module-level functions. Classes are for immutable data and errors only.
+  alt_labels:
+    en: []
+  group: Architecture
+  sources:
+  - https://github.com/jan-ru/finance-tools/blob/main/CLAUDE.md
+  properties:
+    source_text:
+    - CLAUDE.md § Conventions
+- id: observe-only
+  pref_label:
+    en: observe-only
+  definition: '`cockpit` derives status from artifacts on disk and never changes them.'
+  alt_labels:
+    en: []
+  group: Architecture
+  sources:
+  - https://github.com/jan-ru/finance-tools/blob/main/cockpit/README.md
+  properties:
+    source_text:
+    - cockpit/README.md
+- id: logging-chain
+  pref_label:
+    en: logging chain
+  definition: 'The structlog configuration that importing `app_config` installs: timestamps, logger names,
+    redaction. An entry point must reach it.'
+  alt_labels:
+    en: []
+  group: Architecture
+  sources:
+  - https://github.com/jan-ru/finance-tools/blob/main/LOGGING.md
+  properties:
+    source_text:
+    - LOGGING.md
+- id: gates
+  pref_label:
+    en: gates
+  definition: What CI enforces, run locally in CI's order by `scripts/gates.sh` (`lint`, `test`, `coverage`,
+    `pr-status`). Never composed by hand.
+  alt_labels:
+    en: []
+  group: Quality and gates
+  sources:
+  - https://github.com/jan-ru/finance-tools/blob/main/scripts/gates.sh
+  properties:
+    source_text:
+    - scripts/gates.sh
+- id: affected-subset
+  pref_label:
+    en: affected subset
+  definition: On an ordinary PR, CI tests only the packages the diff touches plus their workspace dependents.
+  alt_labels:
+    en: []
+  group: Quality and gates
+  sources:
+  - https://github.com/jan-ru/finance-tools/blob/main/scripts/affected_test_packages.py
+  properties:
+    source_text:
+    - affected_test_packages.py
+- id: repo-check
+  pref_label:
+    en: repo check
+  definition: A module under `scripts/checks/`, discovered by `scripts/checks.py`, with no CI step of
+    its own. `python scripts/checks.py --list` shows all of them.
+  alt_labels:
+    en:
+    - registry
+  group: Quality and gates
+  sources:
+  - https://github.com/jan-ru/finance-tools/blob/main/scripts/checks.py
+  properties:
+    source_text:
+    - scripts/checks.py
+- id: ratchet
+  pref_label:
+    en: ratchet
+  definition: A gate that tolerates a recorded baseline of existing offenders and fails only on new ones,
+    e.g. the dead-code ratchet (vulture).
+  alt_labels:
+    en: []
+  group: Quality and gates
+  sources:
+  - https://github.com/jan-ru/finance-tools/blob/main/scripts/check_dead_code.py
+  properties:
+    source_text:
+    - check_dead_code.py
+- id: rank-a
+  pref_label:
+    en: rank A
+  definition: 'The maintainability gate''s bar: every production file must score maintainability-index
+    rank A.'
+  alt_labels:
+    en: []
+  group: Quality and gates
+  sources:
+  - https://github.com/jan-ru/finance-tools/blob/main/scripts/check_maintainability.py
+  properties:
+    source_text:
+    - check_maintainability.py
+- id: quality-snapshot
+  pref_label:
+    en: quality snapshot
+  definition: A dated, generated block in `docs/quality/`, stamped `**Measured YYYY-MM-DD:**`. It is refreshed
+    only by a release, and the `quality_docs` check fails once it is 90 days old.
+  alt_labels:
+    en: []
+  group: Quality and gates
+  sources:
+  - https://github.com/jan-ru/finance-tools/blob/main/docs/quality/README.md
+  properties:
+    source_text:
+    - docs/quality/README.md
+- id: generated-block
+  pref_label:
+    en: generated block
+  definition: A marked block in `docs/quality/`. A *generated* block is rewritten by `quality_docs --fix`;
+    an *imported* block is copied in from elsewhere (the coverage table) and only aged, never rewritten.
+  alt_labels:
+    en:
+    - imported block
+  group: Quality and gates
+  sources:
+  - https://github.com/jan-ru/finance-tools/blob/main/scripts/checks/quality_docs.py
+  properties:
+    source_text:
+    - quality_docs.py
+- id: preflight
+  pref_label:
+    en: preflight
+  definition: '`scripts/preflight.sh`, which checks that the venv matches `uv.lock` before any measurement.
+    A hook blocks gate commands when it fails.'
+  alt_labels:
+    en: []
+  group: Quality and gates
+  sources:
+  - https://github.com/jan-ru/finance-tools/blob/main/scripts/preflight.sh
+  properties:
+    source_text:
+    - scripts/preflight.sh
+- id: guard-self-tests
+  pref_label:
+    en: guard self-tests
+  definition: '`scripts/tests/test_guards.sh`: the guards'' own tests, which break the venv and the gates
+    on purpose and assert each guard notices. CI runs them when a guard changes.'
+  alt_labels:
+    en: []
+  group: Quality and gates
+  sources:
+  - https://github.com/jan-ru/finance-tools/blob/main/scripts/tests/test_guards.sh
+  properties:
+    source_text:
+    - test_guards.sh
+- id: refactor-gate
+  pref_label:
+    en: refactor gate
+  definition: '`scripts/refactor-gate.sh`: take a baseline before a refactor, verify after it, and fail
+    if any test vanished or newly failed.'
+  alt_labels:
+    en: []
+  group: Quality and gates
+  sources:
+  - https://github.com/jan-ru/finance-tools/blob/main/.claude/skills/refactor-gate/SKILL.md
+  properties:
+    source_text:
+    - skill
+- id: builder-skeptic
+  pref_label:
+    en: builder / skeptic
+  definition: 'The default loop for behaviour-changing fixes: one agent builds test-first, a separate
+    agent tries to break it, and they repeat until nothing is unexplained.'
+  alt_labels:
+    en: []
+  group: Quality and gates
+  sources:
+  - https://github.com/jan-ru/finance-tools/blob/main/.claude/skills/builder-skeptic/SKILL.md
+  properties:
+    source_text:
+    - skill
+- id: proven-by-mutation
+  pref_label:
+    en: proven by mutation
+  definition: A test counts only once breaking the code it guards makes it fail for its stated reason.
+  alt_labels:
+    en: []
+  group: Quality and gates
+  sources:
+  - https://github.com/jan-ru/finance-tools/blob/main/CLAUDE.md
+  properties:
+    source_text:
+    - CLAUDE.md § Testing Conventions
+- id: ruleset-floor
+  pref_label:
+    en: ruleset floor
+  definition: 'The `main` branch ruleset: a PR plus three gate jobs, with no bypass. It is the minimum;
+    `pr-status` PASS is the merge rule.'
+  alt_labels:
+    en: []
+  group: Quality and gates
+  sources:
+  - https://github.com/jan-ru/finance-tools/blob/main/docs/adr/workspace/0051-main-ruleset-floor.md
+  properties:
+    source_text:
+    - ADR-051
+- id: calver-tag
+  pref_label:
+    en: CalVer tag
+  definition: 'A release''s version is the date it was cut: `YYYY.0M.0D`. A second release on the same
+    day appends a counter (`.1`).'
+  alt_labels:
+    en: []
+  group: Release and delivery
+  sources:
+  - https://github.com/jan-ru/finance-tools/blob/main/RELEASING.md
+  properties:
+    source_text:
+    - RELEASING.md
+- id: release-train
+  pref_label:
+    en: release train
+  definition: One of two independently released parts of the repo, over one workspace.
+  alt_labels:
+    en: []
+  group: Release and delivery
+  sources:
+  - https://github.com/jan-ru/finance-tools/blob/main/docs/adr/workspace/0073-two-release-trains.md
+  properties:
+    source_text:
+    - ADR-073
+- id: finance-train
+  pref_label:
+    en: finance train
+  definition: Accounting, Planning & Budgeting and Investment. Bare `YYYY.0M.0D` tags, `CHANGELOG.md`,
+    the overview PDF and the quality snapshots.
+  alt_labels:
+    en: []
+  group: Release and delivery
+  sources:
+  - https://github.com/jan-ru/finance-tools/blob/main/docs/adr/workspace/0073-two-release-trains.md
+  properties:
+    source_text:
+    - ADR-073
+- id: education-train
+  pref_label:
+    en: education train
+  definition: The Education system plus `courses/`. `edu-YYYY.0M.0D` tags and `CHANGELOG-education.md`.
+  alt_labels:
+    en: []
+  group: Release and delivery
+  sources:
+  - https://github.com/jan-ru/finance-tools/blob/main/docs/adr/workspace/0073-two-release-trains.md
+  properties:
+    source_text:
+    - ADR-073
+- id: train-boundary
+  pref_label:
+    en: train boundary
+  definition: Finance never imports education, education imports only `shared/*`, and shared imports neither.
+    Enforced by the `train_isolation` check.
+  alt_labels:
+    en: []
+  group: Release and delivery
+  sources:
+  - https://github.com/jan-ru/finance-tools/blob/main/scripts/checks/train_isolation.py
+  properties:
+    source_text:
+    - train_isolation.py
+- id: release-pr
+  pref_label:
+    en: release PR
+  definition: The PR on branch `release/YYYY.0M.0D` (or `release/edu-…`) that curates the changelog. It
+    tests every package (finance), or every education and shared package (education).
+  alt_labels:
+    en: []
+  group: Release and delivery
+  sources:
+  - https://github.com/jan-ru/finance-tools/blob/main/RELEASING.md
+  properties:
+    source_text:
+    - RELEASING.md
+- id: coverage-at-the-tag
+  pref_label:
+    en: coverage at the tag
+  definition: 'Python coverage measured from a release''s tagged commit, after the cut, by `gates.sh coverage`:
+    every package for a finance tag, the education and shared packages for an `edu-` tag. It never blocks
+    a release.'
+  alt_labels:
+    en: []
+  group: Release and delivery
+  sources:
+  - https://github.com/jan-ru/finance-tools/blob/main/RELEASING.md
+  properties:
+    source_text:
+    - RELEASING.md § 3c
+- id: coverage-asset
+  pref_label:
+    en: coverage asset
+  definition: '`coverage-<tag>.md`, that measurement attached to the GitHub release. The next release
+    PR imports it into [`test-coverage.md`](https://github.com/jan-ru/finance-tools/blob/main/docs/quality/test-coverage.md)
+    (step 1b), so the page always names the release it describes.'
+  alt_labels:
+    en: []
+  group: Release and delivery
+  sources:
+  - https://github.com/jan-ru/finance-tools/blob/main/RELEASING.md
+  properties:
+    source_text:
+    - RELEASING.md § 1b, 3c
+- id: metrics-json
+  pref_label:
+    en: metrics.json
+  definition: 'The release asset, on both trains, that jan-ru/system-health collects: the coverage at
+    the tag in that repository''s format, with a package that could not be measured listed by name, never
+    as 0.'
+  alt_labels:
+    en: []
+  group: Release and delivery
+  sources:
+  - https://github.com/jan-ru/finance-tools/blob/main/RELEASING.md
+  properties:
+    source_text:
+    - RELEASING.md § 3c
+- id: data-only
+  pref_label:
+    en: data only
+  definition: A member that ships no code (`bypass-selection = true`), such as `clients/tenggara`. Coverage
+    reports it as data-only, neither a percentage nor a failure.
+  alt_labels:
+    en: []
+  group: Release and delivery
+  sources:
+  - https://github.com/jan-ru/finance-tools/blob/main/overview/src/overview/coverage.py
+  properties:
+    source_text:
+    - coverage.py
+- id: ghcr-image
+  pref_label:
+    en: GHCR image
+  definition: A deployable image built once from a release tag by `publish-images.yml` and pushed to `ghcr.io/jan-ru/finance-tools/<image>`,
+    tagged `<tag>` and `sha-<commit>`.
+  alt_labels:
+    en: []
+  group: Release and delivery
+  sources:
+  - https://github.com/jan-ru/finance-tools/blob/main/.github/workflows/publish-images.yml
+  properties:
+    source_text:
+    - publish-images.yml
+- id: release-image-tag
+  pref_label:
+    en: release image tag
+  definition: The moving tag on each GHCR image that names what production should run. It is re-pointed
+    only after every image of a release has pushed.
+  alt_labels:
+    en: []
+  group: Release and delivery
+  sources:
+  - https://github.com/jan-ru/finance-tools/blob/main/deploy/README.md
+  properties:
+    source_text:
+    - deploy/README.md
+- id: deploy-compose
+  pref_label:
+    en: deploy compose
+  definition: 'The pull-only compose files in `deploy/` that Coolify deploys (`image: …:release`), kept
+    in step with the build-from-source compose files used for local development (`b2t_compose_drift` checks
+    the B2T pair).'
+  alt_labels:
+    en: []
+  group: Release and delivery
+  sources:
+  - https://github.com/jan-ru/finance-tools/blob/main/deploy/README.md
+  properties:
+    source_text:
+    - deploy/README.md
+- id: cutover
+  pref_label:
+    en: cutover
+  definition: The one-time manual switch from Coolify building on the VPS to pulling the GHCR images,
+    with auto-deploy off and webhooks wired.
+  alt_labels:
+    en: []
+  group: Release and delivery
+  sources:
+  - https://github.com/jan-ru/finance-tools/blob/main/deploy/README.md
+  properties:
+    source_text:
+    - deploy/README.md § Cutover
+- id: rollback
+  pref_label:
+    en: rollback
+  definition: '`gh workflow run publish-images.yml -f tag=<earlier tag>`: re-points `release` at an earlier
+    release''s images and redeploys, with no rebuild.'
+  alt_labels:
+    en: []
+  group: Release and delivery
+  sources:
+  - https://github.com/jan-ru/finance-tools/blob/main/deploy/README.md
+  properties:
+    source_text:
+    - deploy/README.md § Rollback
+- id: production-environment
+  pref_label:
+    en: production environment
+  definition: The GitHub environment that holds the Coolify secrets. A deploy runs in it, so required
+    reviewers there make every deploy wait for approval.
+  alt_labels:
+    en: []
+  group: Release and delivery
+  sources:
+  - https://github.com/jan-ru/finance-tools/blob/main/deploy/README.md
+  properties:
+    source_text:
+    - deploy/README.md § Cutover
+- id: overview-pdf
+  pref_label:
+    en: overview PDF
+  definition: The per-release picture of the repo, built from the finance tag by `ft-overview` and attached
+    to the GitHub release.
+  alt_labels:
+    en: []
+  group: Release and delivery
+  sources:
+  - https://github.com/jan-ru/finance-tools/blob/main/RELEASING.md
+  properties:
+    source_text:
+    - RELEASING.md § 3b
