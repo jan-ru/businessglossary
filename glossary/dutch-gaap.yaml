@@ -1,0 +1,447 @@
+id: dutch-gaap
+title:
+  en: Dutch GAAP and RGS
+  nl: Nederlandse jaarrekening en RGS
+description: Dutch-accounting terminology used by caseware and the rendered jaarrekening.
+default_language: nl
+imported_from: finance-tools:caseware/docs/glossary.md
+concepts:
+- id: bv
+  pref_label:
+    nl: BV
+    en: Private limited company
+  definition: The only entity form this project targets today (see `README.md`, `product.md`). Rendered
+    on the cover page and in the `grondslagen` template.
+  alt_labels:
+    nl:
+    - Besloten Vennootschap
+  group: Company form & filing framework
+- id: jaarrekening
+  pref_label:
+    nl: Jaarrekening
+    en: Statutory annual accounts
+  definition: 'The deliverable: the year-end financial statements + notes + `grondslagen`. Produced by
+    `caseware render` (`cli/report_commands.py`).'
+  group: Company form & filing framework
+- id: jaarverslag
+  pref_label:
+    nl: Jaarverslag
+    en: Annual report
+  definition: Broader than the `jaarrekening` — includes a management/director's report. This project
+    generates the `jaarrekening` only.
+  group: Company form & filing framework
+- id: titel-9-boek-2-bw
+  pref_label:
+    nl: Titel 9 Boek 2 BW
+    en: Title 9, Book 2 of the Dutch Civil Code
+  definition: The legal source for Dutch GAAP filing requirements. The template cover text explicitly
+    cites it.
+  group: Company form & filing framework
+- id: boekjaar
+  pref_label:
+    nl: Boekjaar
+    en: Financial year
+  definition: The 4-digit year on `engagements.fiscal_year`. Not necessarily the calendar year, though
+    the templates assume it is.
+  group: Company form & filing framework
+- id: verslagperiode
+  pref_label:
+    nl: Verslagperiode
+    en: Reporting period
+  definition: The period the `jaarrekening` covers. Called out in the `grondslagen` template.
+  group: Company form & filing framework
+- id: rgs
+  pref_label:
+    nl: RGS
+    en: Reference Chart of Accounts
+  definition: 'A national Dutch account taxonomy at the **ledger** level: every account maps to an RGS
+    reference code that determines where it belongs on the statements. `account_mapper` (`core/*` per
+    `documentation.md`) does *prefix matching* against this taxonomy.'
+  alt_labels:
+    nl:
+    - Referentie Grootboekschema
+  group: Taxonomies — RGS, NT/SBR, and the *categorisch* model
+  related:
+  - nt
+  - sbr
+- id: nt
+  pref_label:
+    nl: NT
+    en: Dutch (XBRL) reporting taxonomy
+  definition: The **report-level** concept set for SBR filings (tax, KvK, CBS, banks); **RJ** is its Dutch-GAAP
+    annual-accounts entry-point. The NT is **bilingual** — every concept carries an nl *and* an en standard
+    label. Used in this codebase only as a **bilingual concept/label source** for English reporting (`nt_labels.csv`
+    in `financial_types` + `fintran.statements.nt_labels`, ADR-025 addendum) — **not** as a filing target.
+  alt_labels:
+    nl:
+    - Nederlandse Taxonomie
+  group: Taxonomies — RGS, NT/SBR, and the *categorisch* model
+  related:
+  - sbr
+- id: sbr
+  pref_label:
+    nl: SBR
+    en: '"Report once, reuse many" programme'
+  definition: The Dutch national method + infrastructure for standardized digital filing to government/banks
+    (operated by Logius, submitted via **Digipoort**). **NT is its taxonomy.** Not operated by this project
+    — we borrow NT's concepts/labels; we do not file through SBR.
+  alt_labels:
+    nl:
+    - Standard Business Reporting
+  group: Taxonomies — RGS, NT/SBR, and the *categorisch* model
+- id: categorisch-model
+  pref_label:
+    nl: Categorisch model
+    en: Categorical presentation
+  definition: One of two allowed layouts for Dutch statements (the other is `functionele indeling` — functional).
+    This project targets the categorical layout only; see `StatementGenerator` in `documentation.md`.
+  group: Taxonomies — RGS, NT/SBR, and the *categorisch* model
+- id: categorie
+  pref_label:
+    nl: Categorie
+    en: Category (line-item bucket)
+  definition: The atomic presentation unit — one row on the statement. Stored as `account_mappings.categorie`
+    and modelled by `StatementLine.categorie` (`models/statements.py`).
+  group: Taxonomies — RGS, NT/SBR, and the *categorisch* model
+- id: level0-level1
+  pref_label:
+    en: Level0 / level1
+  definition: Two levels of aggregation used for subtotals; `level0` is the outer group (e.g. *Vaste activa*),
+    `level1` the inner (e.g. *Materiële vaste activa*). Both are columns on `account_mappings` and fields
+    on `StatementLine`.
+  alt_labels:
+    en:
+    - Grouping hierarchy above categorie
+  group: Taxonomies — RGS, NT/SBR, and the *categorisch* model
+- id: balance-side
+  pref_label:
+    en: Balance side
+  definition: Which side of the balance sheet a categorie sits on. Column on `account_mappings.balance_side`;
+    used by `statement_generator.py` to net debit- and credit-side amounts into a single signed value.
+  alt_labels:
+    en:
+    - Balance side (Debit / Credit)
+  group: Taxonomies — RGS, NT/SBR, and the *categorisch* model
+- id: display-order
+  pref_label:
+    en: Display order
+  definition: Per-line ordering *within* a `level1` group. Column on `account_mappings.display_order`.
+  alt_labels:
+    en:
+    - Presentation order
+  group: Taxonomies — RGS, NT/SBR, and the *categorisch* model
+- id: mapping-account-rgs
+  pref_label:
+    en: Mapping (account → RGS)
+  definition: '*Per client, per engagement.* Answers "what is this client''s account `0200`?" in RGS vocabulary:
+    `categorie` + `level0` + `level1` + `statement_type` + `balance_side` + `display_order`. Stored one
+    row per (engagement, account) in `account_mappings`; **proposed** by `account_mapper.auto_map` and
+    **asserted** by the preparer in `account_decisions.csv`. Many accounts → one categorie.'
+  alt_labels:
+    en:
+    - Account mapping
+  group: Taxonomies — RGS, NT/SBR, and the *categorisch* model
+  related:
+  - crosswalk-categorie-concept
+- id: crosswalk-categorie-concept
+  pref_label:
+    en: Crosswalk (categorie → concept)
+  definition: '*Universal, not per client.* Answers "how is `Effecten` reported?" Hand-curated in `shared/financial_types/.../rgs_nt_crosswalk.csv`;
+    the official RGS distribution ships the authoritative version, which `regen_rgs_nt_crosswalk.py` stubs
+    out pending ADR-033. Many categories → one concept. **The taxonomy-specific layer** — an IFRS taxonomy
+    would add a sibling file, since `account → categorie` is taxonomy-neutral.'
+  alt_labels:
+    en:
+    - RGS→taxonomy crosswalk
+  group: Taxonomies — RGS, NT/SBR, and the *categorisch* model
+- id: override-account-concept
+  pref_label:
+    en: Override (account → concept)
+  definition: '*Per engagement.* Names a taxonomy concept for one account outright, bypassing the crosswalk.
+    Lives in `account_decisions.csv` as a row whose `decision` is `override`, **requires a written reason**,
+    and should be rare — it records a deliberate presentation departure from RGS, not a repair for a wrong
+    mapping.'
+  alt_labels:
+    en:
+    - Concept override
+  group: Taxonomies — RGS, NT/SBR, and the *categorisch* model
+  related:
+  - crosswalk-categorie-concept
+- id: decision
+  pref_label:
+    en: Decision
+  definition: 'A row in `account_decisions.csv`: `ratify` (the proposal is right), `correct` (a different
+    categorie is right), `override` (the concept departs from the crosswalk), or blank (**undecided**
+    — not yet ruled on). Stated in its own column rather than inferred, because a pre-filled skeleton
+    row is otherwise indistinguishable from a ratification.'
+  alt_labels:
+    en:
+    - Preparer's ruling on an account
+  group: Taxonomies — RGS, NT/SBR, and the *categorisch* model
+  related:
+  - override-account-concept
+  - provenance
+- id: provenance
+  pref_label:
+    en: Provenance
+  definition: '`account_mappings.provenance`: `auto` (the prefix matcher guessed), `ratify` or `correct`
+    (a preparer ruled). Without it a guess and a decision are indistinguishable in storage.'
+  alt_labels:
+    en:
+    - Who decided a mapping
+  group: Taxonomies — RGS, NT/SBR, and the *categorisch* model
+- id: balans
+  pref_label:
+    nl: Balans
+    en: Balance sheet
+  definition: '`FinancialStatement.statement_type == "balance_sheet"`. Renders assets (`Debit`) opposite
+    liabilities + equity (`Credit`).'
+  group: Financial statements
+- id: resultatenrekening
+  pref_label:
+    nl: Resultatenrekening
+    en: Income statement / P&L
+  definition: '`statement_type == "income_statement"`. Rendered `categorisch`.'
+  alt_labels:
+    nl:
+    - Winst-en-verliesrekening
+  group: Financial statements
+- id: kasstroomoverzicht
+  pref_label:
+    nl: Kasstroomoverzicht
+    en: Cash-flow statement
+  definition: '`statement_type == "cash_flow"`.'
+  group: Financial statements
+- id: toelichting
+  pref_label:
+    nl: Toelichting
+    en: Notes to the statements
+  definition: Free-text notes, computed per engagement — not persisted (ADR-020 PB-2; see the [persistence
+    model](https://github.com/jan-ru/finance-tools/blob/main/caseware/docs/engagement-and-audit-layer.md)).
+    `render_report` and `validate_engagement` each build the note set they need from the trial balance
+    and mappings, on every call. Rendered after the primary statements.
+  group: Financial statements
+- id: grondslagen-voor-waardering-en-resultaatbepaling
+  pref_label:
+    nl: Grondslagen (voor waardering en resultaatbepaling)
+    en: Accounting policies (measurement basis and result-determination basis)
+  definition: The policies section of the `jaarrekening`. Filled from `rendering/templates/grondslagen_bv.md`
+    with company-specific fields substituted.
+  group: Financial statements
+- id: mutatieoverzicht
+  pref_label:
+    nl: Mutatieoverzicht
+    en: Movement schedule
+  definition: A table showing opening balance → additions → disposals → closing balance for a specific
+    balance-sheet position (typically fixed assets, provisions, equity). Generated by `notes_generator`.
+  group: Financial statements
+- id: proef-en-saldibalans
+  pref_label:
+    nl: Proef- en saldibalans
+    en: Trial balance
+  definition: The starting point for the pipeline. Stored one row per account per engagement in `trial_balances`
+    (see the ERD).
+  group: Trial balance & source data
+- id: auditfile-financieel
+  pref_label:
+    nl: Auditfile Financieel
+    en: Financial Auditfile
+  definition: Filename says XAF (*XML Auditfile Financieel*). A standardised Dutch accounting export format
+    that includes the full trial balance plus transactions. Parsed by `XAFProcessor` (`core/*`). Also
+    imported from CSV / Excel via `TrialBalanceImporter`.
+  group: Trial balance & source data
+- id: beginsaldo-eindsaldo
+  pref_label:
+    nl: Beginsaldo / eindsaldo
+    en: Opening / closing balance
+  definition: Columns `opening_balance_debit`, `opening_balance_credit`, `closing_balance_debit`, `closing_balance_credit`
+    on `trial_balances`.
+  group: Trial balance & source data
+- id: mutatie
+  pref_label:
+    nl: Mutatie
+    en: Movement (in-year turnover)
+  definition: Columns `turnover_debit`, `turnover_credit` on `trial_balances`.
+  group: Trial balance & source data
+- id: controledossier
+  pref_label:
+    nl: Controledossier
+    en: Audit working papers
+  definition: The auditor's file supporting the `jaarrekening`.
+  group: Working papers (controledossier)
+- id: aansluitingsblad
+  pref_label:
+    nl: Aansluitingsblad
+    en: Lead sheet
+  definition: Per-`categorie` summary tying the trial balance to the reported statement line. Modelled
+    by `lead_sheet_reviews` (see ERD) and `core/working_papers_engine.py`.
+  group: Working papers (controledossier)
+- id: correctieboeking
+  pref_label:
+    nl: Correctieboeking
+    en: Adjusting entry
+  definition: 'A post-close journal entry proposed by the auditor. Two-table model: `adjusting_entries`
+    (header) + `adjusting_entry_lines` (debit/credit lines). Numbered sequentially per engagement (`UNIQUE(engagement_id,
+    entry_number)`).'
+  group: Working papers (controledossier)
+- id: tegenboeking
+  pref_label:
+    nl: Tegenboeking
+    en: Reversal
+  definition: An adjusting entry that reverses a previous one; `adjusting_entries.is_reversal = TRUE`
+    and `reverses_entry` points at the original `entry_number`.
+  group: Working papers (controledossier)
+  related:
+  - correctieboeking
+- id: vergelijkende-cijfers
+  pref_label:
+    nl: Vergelijkende cijfers
+    en: Comparative figures
+  definition: The prior-year column in the balance sheet / P&L. `StatementLine.prior_amount is None` means
+    no comparative was requested; `0.0` means a genuine zero.
+  group: Prior-year & comparatives
+- id: herclassificatie
+  pref_label:
+    nl: Herclassificatie
+    en: Reclassification
+  definition: Restating prior-year figures on the current year's taxonomy so the columns line up. Handled
+    by `core/comparative_engine.py`.
+  group: Prior-year & comparatives
+- id: prior-engagement
+  pref_label:
+    nl: Prior engagement
+    en: Prior-year engagement
+  definition: 'Optional `prior_engagement` in `caseware.toml`: source comparative figures from a separate,
+    independently-filed engagement instead of approximating them from the current engagement''s opening
+    balances.'
+  group: Prior-year & comparatives
+- id: eigen-vermogen
+  pref_label:
+    nl: Eigen vermogen
+    en: Shareholders' equity
+  definition: Root `level0` group on the credit side of the `balans`.
+  group: Equity — components (rendered on the balance sheet)
+- id: geplaatst-kapitaal
+  pref_label:
+    nl: Geplaatst kapitaal
+    en: Issued share capital
+  definition: Nominal value of shares issued.
+  group: Equity — components (rendered on the balance sheet)
+  broader:
+  - eigen-vermogen
+- id: agio
+  pref_label:
+    nl: Agio
+    en: Share premium
+  definition: Amounts paid on issue in excess of nominal value.
+  group: Equity — components (rendered on the balance sheet)
+  broader:
+  - eigen-vermogen
+- id: wettelijke-reserves
+  pref_label:
+    nl: Wettelijke reserves
+    en: Statutory reserves
+  definition: Reserves required by Dutch law (e.g. for deelnemingen carried at equity).
+  group: Equity — components (rendered on the balance sheet)
+  broader:
+  - eigen-vermogen
+- id: statutaire-reserves
+  pref_label:
+    nl: Statutaire reserves
+    en: Reserves required by the articles of association
+  definition: Optional; from the company's own statuten.
+  group: Equity — components (rendered on the balance sheet)
+  broader:
+  - eigen-vermogen
+- id: overige-reserves
+  pref_label:
+    nl: Overige reserves
+    en: Other (free) reserves
+  definition: Distributable retained earnings.
+  group: Equity — components (rendered on the balance sheet)
+  broader:
+  - eigen-vermogen
+- id: onverdeeld-resultaat-van-het-boekjaar
+  pref_label:
+    nl: Onverdeeld resultaat (van het boekjaar)
+    en: Undistributed result of the year
+  definition: The current year's profit or loss, before appropriation.
+  group: Equity — components (rendered on the balance sheet)
+  broader:
+  - eigen-vermogen
+- id: verkrijgingsprijs
+  pref_label:
+    nl: Verkrijgingsprijs
+    en: Acquisition cost
+  definition: Default measurement basis in the `grondslagen` template — "op basis van historische kosten,
+    tenzij anders vermeld".
+  group: Measurement bases
+- id: boekwaarde
+  pref_label:
+    nl: Boekwaarde
+    en: Carrying amount / book value
+  definition: Verkrijgingsprijs minus cumulative afschrijvingen and any bijzondere waardeverminderingen.
+  group: Measurement bases
+- id: afschrijving
+  pref_label:
+    nl: Afschrijving
+    en: Depreciation
+  definition: Straight-line by default in the template ("vast percentage van de verkrijgingsprijs").
+  group: Measurement bases
+- id: bijzondere-waardevermindering
+  pref_label:
+    nl: Bijzondere waardevermindering
+    en: Impairment
+  definition: Extra write-down beyond scheduled depreciation.
+  group: Measurement bases
+- id: nominale-waarde
+  pref_label:
+    nl: Nominale waarde
+    en: Nominal value
+  definition: Face value; used for vorderingen, liquide middelen, schulden.
+  group: Measurement bases
+- id: voorziening
+  pref_label:
+    nl: Voorziening
+    en: Provision
+  definition: Liability of uncertain timing or amount, valued at the "best estimate" of amounts required
+    to settle.
+  group: Measurement bases
+- id: deelneming
+  pref_label:
+    nl: Deelneming
+    en: Investment in a subsidiary/associate
+  definition: Measured at fiscal-basis net asset value if the parent has "influence of significance";
+    otherwise at cost less impairment.
+  group: Measurement bases
+- id: engagement
+  pref_label:
+    en: Engagement
+  definition: One project = one entity for one fiscal year. State machine documented in `.kiro/steering/documentation.md`.
+  alt_labels:
+    en: []
+  group: Terms specific to this codebase (not standard Dutch-accounting jargon)
+  properties:
+    where:
+    - engagements table, caseware.persistence.engagements
+- id: partner
+  pref_label:
+    en: Partner
+  definition: The lead accountant/auditor responsible for the engagement. Free-text string.
+  alt_labels:
+    en: []
+  group: Terms specific to this codebase (not standard Dutch-accounting jargon)
+  properties:
+    where:
+    - engagements.partner
+- id: audit-trail
+  pref_label:
+    en: Audit trail
+  definition: Append-only log of every state-changing action against an engagement — separate from the
+    accounting "audit" (`controle`) in the working-papers sense.
+  alt_labels:
+    en: []
+  group: Terms specific to this codebase (not standard Dutch-accounting jargon)
+  properties:
+    where:
+    - audit_trail table

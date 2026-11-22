@@ -1,0 +1,34 @@
+[project]
+name = "businessglossary"
+version = "0.0.1"
+description = "A business glossary"
+readme = "README.md"
+license = "Apache-2.0"
+license-files = ["LICENSE"]
+authors = [{ name = "janru.muller" }]
+requires-python = ">=3.13"
+dependencies = [
+    "pydantic>=2.14.4",
+    "pyyaml>=6.0.4",
+]
+classifiers = [
+    "Development Status :: 2 - Pre-Alpha",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Programming Language :: Python :: 3.15",
+]
+
+[dependency-groups]
+dev = ["pytest>=9.2", "ruff>=0.17"]
+
+[build-system]
+requires = ["hatchling>=1.33"]
+build-backend = "hatchling.build"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+target-version = "py313"
+line-length = 120
